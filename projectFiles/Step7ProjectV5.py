@@ -15,6 +15,8 @@ class Step7ProjectV5(Project):
         super(Step7ProjectV5, self).__init__()
         self.projectFolder, self.projectFile, self.ziphelper = getProjectfolder(projectfile)
         self.projectEncoding = getProjectEncoding(self)
+        self._cpuFolders = {}
+        self._s7ProgrammFolders = {}
 
         self.loadProjectHeader()
 
@@ -116,8 +118,6 @@ class Step7ProjectV5(Project):
 
     @property
     def cpuFolders(self):
-        if not self._loaded:
-            self.load()
         return self._cpuFolders
 
     # @property
@@ -128,8 +128,6 @@ class Step7ProjectV5(Project):
 
     @property
     def s7ProgrammFolders(self):
-        if not self._loaded:
-            self.load()
         return self._s7ProgrammFolders
 
     # @property

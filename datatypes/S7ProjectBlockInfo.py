@@ -24,7 +24,10 @@ class S7ProjectBlockInfo():
 
     @property
     def symbol(self):
-        return self.parent.parent.symbolTable[self.BlockName].decode('ISO-8859-1').strip()
+        symbol =  self.parent.parent.symbolTable[self.BlockName]
+        if symbol:
+            return symbol.decode('ISO-8859-1').strip()
+        return symbol
 
     @property
     def BlockName(self):
