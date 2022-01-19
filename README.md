@@ -1,5 +1,8 @@
 # PythonSiemensToolBoxLibrary
 
+Install:
+ python -m pip install git+https://github.com/EspenEnes/PythonSiemensToolBoxLibrary
+
 This is almost a ripoff of the https://github.com/dotnetprojects/DotNetSiemensPLCToolBoxLibrary only it is written i python.
 it is a work in progres
 
