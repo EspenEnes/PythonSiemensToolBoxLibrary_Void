@@ -19,7 +19,7 @@ folders = {key:value for key, value in project.s7ProgrammFolders.items() if valu
     to find s7programFolders that are connected to a CPU we see if folder has a parent (a cpu),
     most cases only one folder is connected to a cpu
 
-folder = s7programFolders[1] \
+folder = s7programFolders¨.s7programFolders[1] \
     select desirable folder:
 
 folder.load() \
