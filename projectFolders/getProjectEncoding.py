@@ -1,7 +1,15 @@
 import codecs
 
-def getProjectEncoding(projectfolder):
-    file = projectfolder + "\\" + "Global" + "\\" + "Language"
+def getProjectEncoding(parent=None, projectFolder=None):
+    # if projectFolder, use projectfolder, else use parent.projectFolder
+    if projectFolder:
+        pass
+    elif hasattr(parent, "projectFolder"):
+        projectFolder = parent.projectFolder
+    else:
+        return None
+
+    file = fr"{projectFolder}\Global\Language"
     result = []
     try:
         f = open(file)

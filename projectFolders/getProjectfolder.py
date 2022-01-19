@@ -1,7 +1,7 @@
 import tempfile
 import zipfile
 
-def getProjectfolder(file: str):
+def getProjectfolder(file: str) -> tuple:
     if file.lower().endswith(".s7p"):
         return "\\".join(file.split("\\")[:-1]), file,  None
     elif file.lower().endswith(".zip"):

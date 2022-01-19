@@ -1,23 +1,25 @@
-from .Project import Project
-from SimaticTools import getProjectfolder, getProjectEncoding
-from projectFolders.Step7V5 import getAllBlocksOfflineFolders, getAllProgramFolders
+import os.path
 import re
+from DBF import ParseDBF
+from .Project import Project
+from projectFolders import getProjectfolder, getProjectEncoding, ProjectFolder
+
+from projectFolders.Step7V5 import getAllBlocksOfflineFolders, getAllProgramFolders, symbolTable, getAllProjectStations, \
+    getAllCpuFolders, getAllNetworkInterfaces, getAllDP, getAllMPI
+
+
 
 
 class Step7ProjectV5(Project):
-    def __init__(self, projectfile, showDeleted=False):
+    def __init__(self, projectfile):
         super(Step7ProjectV5, self).__init__()
         self.projectFolder, self.projectFile, self.ziphelper = getProjectfolder(projectfile)
+        self.projectEncoding = getProjectEncoding(self)
 
-        self.projectEncoding = getProjectEncoding(self.projectFolder)
-        self._showDeleted = showDeleted
-        self._blocksOfflineFolders = list()
-        self.loadProjectHeader(self._showDeleted)
+        self.loadProjectHeader()
 
-
-    def loadProjectHeader(self, showDeleted):
-        self._showDeleted = showDeleted
-        with open( self.projectFile, "rb") as f:
+    def loadProjectHeader(self) -> str: #todo read Projectheader without unpacking zipfile
+        with open(self.projectFile, "rb") as f:
             data = f.read()
             startindex = 5
             span = int(data[startindex - 1])
@@ -27,20 +29,56 @@ class Step7ProjectV5(Project):
             startindex = stopindex + 5
             span = int(data[startindex - 1])
             stopindex = startindex + span
-            self.projectDescription = data[startindex: stopindex]
+            projectDescription = data[startindex: stopindex]
+        return f"{self.projectName}"
 
-    def loadProject(self):
-        self.projectStructure = None
-        self.s7ProgrammFolders = getAllProgramFolders(self.projectFolder)
-        self._blocksOfflineFolders = getAllBlocksOfflineFolders(self.projectFolder, self.projectEncoding[0])
-        self.linkOfflineblockFolderWithProgrammFolder()
+    def load(self) -> list:
+        self.projectStructure = ProjectFolder(self)
 
-    def linkOfflineblockFolderWithProgrammFolder(self):
+        #Get project Stations
+        self._stations = getAllProjectStations(self)
+
+        #Get project CPUs and link to Stations
+        self._cpuFolders = getAllCpuFolders(self)
+        # self._cpFolders = getAllCommunicationProcessors(self)
+
+        #Get project NetworkInterfaces todo: Link interface with CPU
+        self._networkInterfaces = getAllNetworkInterfaces(self)
+        self.MPI = getAllMPI(self)
+        self.DP = getAllDP(self)
+
+
+        self._s7ProgrammFolders = getAllProgramFolders(self)
+        self._blocksOfflineFolders = getAllBlocksOfflineFolders(self)
+
+        self._linkProgrammFolderWithCPU()
+        self._linkOfflineblockFolderWithProgrammFolder()
+        self._linkSymbolTableWithProgrammFolder()
+
+        self._loaded = True
+
+        return [folder for folder in self._s7ProgrammFolders.values()]
+
+
+    def _linkProgrammFolderWithCPU(self):
+        dbf = ParseDBF(fr"{self.projectFolder}\hOmSave7\s7hk31ax\HRELATI1.DBF")
+        for row in dbf.records:
+            if int(row["RELID"]) == 16:
+                cpuID = int(row["SOBJID"])
+                folderID = int(row["TOBJID"])
+
+                if cpuID in self._cpuFolders.keys() and folderID in self._s7ProgrammFolders:
+                    cpu = self._cpuFolders[cpuID]
+                    folder = self._s7ProgrammFolders[folderID]
+                    folder.parent = cpu
+                    cpu.subItems.append(folder)
+
+    def _linkOfflineblockFolderWithProgrammFolder(self):
         file = self.projectFolder + "\\" + "hrs" + "\\" + "linkhrs.lnk"
         with open(file, "rb") as f:
             completeBuffer = f.read()
 
-        for S7ProgrammFolder in self.s7ProgrammFolders:
+        for S7ProgrammFolder in self._s7ProgrammFolders.values():
             position = S7ProgrammFolder._linkfileoffset
 
             match = re.compile(b"\x01\x60\x11\x00(.{2})").search(completeBuffer[position:])
@@ -50,12 +88,52 @@ class Step7ProjectV5(Project):
                 for blocksOfflineFolders in self._blocksOfflineFolders:
                     if Step7ProjectBlockFolderID == int(blocksOfflineFolders.ID):
                         S7ProgrammFolder.blockOfflineFolder = blocksOfflineFolders
+                        blocksOfflineFolders.parent = S7ProgrammFolder
                         break
 
+    def _linkSymbolTableWithProgrammFolder(self):
+        dbf1 = ParseDBF(f"{self.projectFolder}\\YDBs\\YLNKLIST.DBF")
+        dbf2 = ParseDBF(f"{self.projectFolder}\\YDBs\\SYMLISTS.DBF")
 
+        id2 = 0
+        for folder in self._s7ProgrammFolders.values():
+            for row in dbf1.records:
+                if int(row["TOI"]) == folder.ID:
+                    id2 = int(row["SOI"])
+                    break
 
+            if id2 > 0:
+                for row in dbf2.records:
+                    if not int(row["_ID"]) == id2:
+                        continue
 
+                    if os.path.isfile(f"{self.projectFolder}\\YDBs\\{str(id2)}\\SYMLIST.DBF"):
+                        table = symbolTable.SymbolTable()
+                        table.Name = (row["_UNAME"])
+                        table.folder = f"{self.projectFolder}\\YDBs\\{str(id2)}"
+                        folder.symbolTable = table
+                        break
 
+    @property
+    def cpuFolders(self):
+        if not self._loaded:
+            self.load()
+        return self._cpuFolders
 
+    # @property
+    # def cpFolders(self):
+    #     if not self._loaded:
+    #         self.load()
+    #     return self._cpFolders
 
+    @property
+    def s7ProgrammFolders(self):
+        if not self._loaded:
+            self.load()
+        return self._s7ProgrammFolders
 
+    # @property
+    # def blockOfflineFolders(self):
+    #     if not self._loaded:
+    #         self.load()
+    #     return self._blocksOfflineFolders
