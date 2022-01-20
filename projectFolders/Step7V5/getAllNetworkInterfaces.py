@@ -77,9 +77,10 @@ def getAllNetworkInterfaces(parent=None, projectFolder=None):
 
     for structure in matchesIpStructure:
         struct = completeBuffer[structure.end(0): structure.end(0) + 1705]
-        id = int.from_bytes(struct[:4], "little")
+        id = int.from_bytes(struct[0:4], "little")
         ethernet = EthernetInterface()
         ethernet._id = id
+
 
         matchesIP = re.compile(b'\xE0\x0F\x00\x00\xE0\x0F\x00\x00').finditer(struct)
         for matchIP in matchesIP:
@@ -121,6 +122,7 @@ def getAllNetworkInterfaces(parent=None, projectFolder=None):
             ethernet.UseIso = useMAC
 
         NetworkInterfaces[id] = ethernet
+        print(id, ethernet.IPAddress)
     return NetworkInterfaces
 
 

@@ -5,7 +5,7 @@ from .Project import Project
 from projectFolders import getProjectfolder, getProjectEncoding, ProjectFolder
 
 from projectFolders.Step7V5 import getAllBlocksOfflineFolders, getAllProgramFolders, symbolTable, getAllProjectStations, \
-    getAllCpuFolders, getAllNetworkInterfaces, getAllDP, getAllMPI
+    getAllCpuFolders, getAllNetworkInterfaces, getAllDP, getAllMPI, getAllCommunicationProcessors
 
 
 
@@ -42,7 +42,7 @@ class Step7ProjectV5(Project):
 
         #Get project CPUs and link to Stations
         self._cpuFolders = getAllCpuFolders(self)
-        # self._cpFolders = getAllCommunicationProcessors(self)
+        self._cpFolders = getAllCommunicationProcessors(self)
 
         #Get project NetworkInterfaces todo: Link interface with CPU
         self._networkInterfaces = getAllNetworkInterfaces(self)
@@ -120,11 +120,9 @@ class Step7ProjectV5(Project):
     def cpuFolders(self):
         return self._cpuFolders
 
-    # @property
-    # def cpFolders(self):
-    #     if not self._loaded:
-    #         self.load()
-    #     return self._cpFolders
+    @property
+    def cpFolders(self):
+        return self._cpFolders
 
     @property
     def s7ProgrammFolders(self):

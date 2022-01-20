@@ -1,8 +1,5 @@
 from DBF import ParseDBF
-
-from datatypes import StationType
-from .stationConfigurationFolder import StationConfigurationFolder
-from datatypes import stationTypes
+from datatypes import StationType, StationConfigurationFolder
 
 
 def getAllProjectStations(parent=None, projectFolder=None):

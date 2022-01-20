@@ -12,6 +12,7 @@ class CPUFolder:
     slot = None
     ID = None
     name = None
+    idTobjID = list()
 
     NetworkInterfaces = list()
     subItems = list()

@@ -1,6 +1,6 @@
-import DBF
 from DBF import ParseDBF
 from dbfread import exceptions
+from datatypes import CpFolder
 
 
 def getAllCommunicationProcessors(parent=None, projectFolder=None):
@@ -21,17 +21,17 @@ def getAllCommunicationProcessors(parent=None, projectFolder=None):
         return folders
 
     for row in dbf.records:
-        id = int(row["ID"])
-        folders[id] = {}
+        cp = CpFolder()
 
-        folders[id]["ID"] = id
+        cp.ID = int(row["ID"])
 
-        folders[id]["unitId"] = int(row["UNITID"])
-        folders[id]["objTyp"] = int(row["OBJTYP"])
+        cp.unitID = int(row["UNITID"])
+        cp.objTyp = int(row["OBJTYP"])
 
-        folders[id]["name"] = row["NAME"].decode("ISO-8859-1").replace("\0", "").strip()
-        folders[id]["rack"] = int(row["SUBSTATN"])
-        folders[id]["slot"] = int(row["MODULN"])
-        folders[id]["subModulNumber"] = int(row["SUBMODN"])
+        cp.name = row["NAME"].decode("ISO-8859-1").replace("\0", "").strip()
+        cp.rack = int(row["SUBSTATN"])
+        cp.slot = int(row["MODULN"])
+        cp.subModulNumber = int(row["SUBMODN"])
+        folders[cp.ID] = cp
 
     return folders

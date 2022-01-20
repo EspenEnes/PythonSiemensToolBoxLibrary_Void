@@ -1,10 +1,7 @@
 from DBF import ParseDBF
 from datatypes.cpuFolder import CPUFolder
 import os
-# from SimaticTools.datatypes import ObjectType as obj
-from datatypes import PLCType
-from .stationConfigurationFolder import StationConfigurationFolder
-
+from datatypes import PLCType, StationConfigurationFolder
 
 #todo: Needs refactoring, duplicate codes
 
@@ -67,7 +64,6 @@ def getAllCpuFolders(parent=None, projectFolder=None):
 
         for station in stations.values():
             station: StationConfigurationFolder
-            print(station.stationType.value)
             for row in dbf.records:
 
                 if int(row["TOBJTYP"]) == station.stationType.value and  (int(row["TOBJTYP"]) == PLCType.Simatic400.value or  int(row["TOBJTYP"]) == PLCType.Simatic400H.value):
