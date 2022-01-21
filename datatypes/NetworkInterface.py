@@ -16,6 +16,10 @@ class  EthernetInterface:
     def __str__(self):
         return (self.Name or "") + ", Ip: " + self.IPAddress
 
+    def __repr__(self):
+        return (self.Name or "") + ", Ip: " + self.IPAddress
+
+
 @dataclass
 class MpiProfibusInterface:
     NetworkInterfaceType = "MPI"
