@@ -6,7 +6,7 @@ class CPUFolder:
     parent = None
     unitID = None
     tObjTyp = None
-    tObjId = None
+    tObjId = None # forgein Key ProfinetSystem
     cpuType = None
     rack = None
     slot = None

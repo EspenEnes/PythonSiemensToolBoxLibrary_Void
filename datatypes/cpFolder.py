@@ -15,6 +15,9 @@ class CpFolder:
     slot: int = None
 
     idTobjId = list()
-    TobjId = list()
+    tObjId = None # forgein Key ProfinetSystem
     NetworkInterfaces = list()
+
+    def __repr__(self):
+        return self.name
 

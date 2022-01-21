@@ -3,6 +3,7 @@ import re
 from DBF import ParseDBF
 from .Project import Project
 from projectFolders import getProjectfolder, getProjectEncoding, ProjectFolder
+from datatypes import PLCType
 
 from projectFolders.Step7V5 import getAllBlocksOfflineFolders, getAllProgramFolders, symbolTable, getAllProjectStations, \
     getAllCpuFolders, getAllNetworkInterfaces, getAllDP, getAllMPI, getAllCommunicationProcessors
@@ -56,6 +57,7 @@ class Step7ProjectV5(Project):
         self._linkProgrammFolderWithCPU()
         self._linkOfflineblockFolderWithProgrammFolder()
         self._linkSymbolTableWithProgrammFolder()
+        self._linkProfinetWithCpuCp()
 
         self._loaded = True
 
@@ -115,6 +117,45 @@ class Step7ProjectV5(Project):
                         table.folder = f"{self.projectFolder}\\YDBs\\{str(id2)}"
                         folder.symbolTable = table
                         break
+
+    def _linkProfinetWithCpuCp(self):
+        plcsWithEternet = [PLCType.EternetInCPU3xxF.value, PLCType.EternetInCPU3xx.value, PLCType.EternetInCPU4xx.value,
+                           PLCType.EternetInCPU3xx_2.value, PLCType.EternetInCPURTX.value]
+
+        dbf = ParseDBF(
+            fr"{self.projectFolder}\hOmSave7\s7hssiox\HOBJECT1.DBF")
+
+        for row in dbf.records:
+            if int(row["OBJTYP"]) in plcsWithEternet:
+                """Profinet connection to CPU"""
+                if int(row["UNITID"]) in self.cpuFolders:
+                    cpu = self.cpuFolders[int(row["UNITID"])]
+                    cpu.idTobjID.append(int(row["ID"]))
+            elif int(row["OBJTYP"]) in [2364971, 2367589]:
+                if int(row["UNITID"]) in self.cpFolders:
+                    cp = self.cpFolders[int(row["UNITID"])]
+                    cp.idTobjId.append(int[row["ID"]])
+
+        dbf = ParseDBF(fr"{self.projectFolder}\hOmSave7\s7hssiox\HRELATI1.DBF")
+        for row in dbf.records:
+            if int(row["RELID"]) == 64:
+                CP = next((cp for cp in self.cpFolders.values() if int(row["SOBJID"]) in cp.idTobjId), None)
+                CPU = next((cpu for cpu in self.cpuFolders.values() if int(row["SOBJID"]) in cpu.idTobjID), None)
+                if CP:
+                    CP.tObjId = int(row["TOBJID"])  #todo: this is alo done in getAll_CP  ????
+                elif CPU:
+                    CPU.tObjId = int(row["TOBJID"])
+
+        for networkId in self._networkInterfaces:
+            CPU = next((cpu for cpu in self.cpuFolders.values() if cpu.tObjId == networkId), None)
+            CP = next((cp for cp in self.cpFolders.values() if networkId == cp.tObjId), None)
+            if CP:
+                CP.NetworkInterfaces.append(self._networkInterfaces[networkId])
+            if CPU:
+                CPU.NetworkInterfaces.append(self._networkInterfaces[networkId])
+    @property
+    def station(self):
+        return self._stations
 
     @property
     def cpuFolders(self):

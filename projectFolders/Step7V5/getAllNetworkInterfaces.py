@@ -122,7 +122,6 @@ def getAllNetworkInterfaces(parent=None, projectFolder=None):
             ethernet.UseIso = useMAC
 
         NetworkInterfaces[id] = ethernet
-        print(id, ethernet.IPAddress)
     return NetworkInterfaces
 
 
