@@ -22,6 +22,11 @@ def getAllMPI(parent=None, projectFolder=None):
         MPI = MpiProfibusInterface()
         MPI._id = id
 
+        matchesName = re.compile(b'Baugruppenname').finditer(struct)
+        for matchName in matchesName:
+            Name = struct[matchName.end(0) + 11: matchName.end(0) + 11 + int(struct[matchName.end(0) + 10])]
+            MPI.Name = Name.decode("ISO-8859-1")
+
 
         matchesMPI = re.compile(b'\x9A\x08\x00\x00\x9A\x08\x00\x00').finditer(struct)
         for matchMPI in matchesMPI:
@@ -52,6 +57,11 @@ def getAllDP(parent=None, projectFolder=None):
         DP = MpiProfibusInterface()
         DP._id = id
 
+        matchesName = re.compile(b'Baugruppenname').finditer(struct)
+        for matchName in matchesName:
+            Name = struct[matchName.end(0) + 11: matchName.end(0) + 11 + int(struct[matchName.end(0) + 10])]
+            DP.Name = Name.decode("ISO-8859-1")
+
         matchesDP = re.compile(b'\x36\x08\x00\x00\x36\x08\x00\x00').finditer(struct)
         for matchDP in matchesDP:
 
@@ -73,6 +83,8 @@ def getAllNetworkInterfaces(parent=None, projectFolder=None):
     with open(projectFolder + "\\S7Netze\\S7NONFGX.tab", "rb") as f:
         completeBuffer = f.read()
 
+
+
     matchesIpStructure = re.compile(b'\x03\x52\x14\x00').finditer(completeBuffer)
 
     for structure in matchesIpStructure:
@@ -80,6 +92,11 @@ def getAllNetworkInterfaces(parent=None, projectFolder=None):
         id = int.from_bytes(struct[0:4], "little")
         ethernet = EthernetInterface()
         ethernet._id = id
+
+        matchesName = re.compile(b'Baugruppenname').finditer(struct)
+        for matchName in matchesName:
+            Name = struct[matchName.end(0) + 29: matchName.end(0) + 29 + int(struct[matchName.end(0) + 28])]
+            ethernet.Name = Name.decode("ISO-8859-1")
 
 
         matchesIP = re.compile(b'\xE0\x0F\x00\x00\xE0\x0F\x00\x00').finditer(struct)
