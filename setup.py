@@ -3,7 +3,7 @@ import platform
 
 MAJOR = 0
 MINOR = 0
-MICRO = 0
+MICRO = 1
 VERSION = f"{MAJOR}.{MINOR}.{MICRO}"
 
 min_version = (3, 7, 0)
